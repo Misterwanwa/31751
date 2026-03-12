@@ -1,5 +1,7 @@
 # WI Lernplattform – Setup
 
+**Live URL**: https://31751.vercel.app
+
 ## Voraussetzungen
 - Node.js 18+ (https://nodejs.org)
 - npm
