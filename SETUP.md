@@ -30,7 +30,7 @@ src/
     window/                 ← Fensterverwaltung
     desktop/                ← Desktop, Icons, Taskbar, Startmenü
     apps/
-      uml/                  ← App 1: UML Architect Pro
+      paint/                ← App 1: Paint
       erd/                  ← App 2: ERD Database Designer
       bpmn/                 ← App 3: Process Flow Modeler
       metamatrix/           ← App 4: OMG Meta-Matrix Simulator

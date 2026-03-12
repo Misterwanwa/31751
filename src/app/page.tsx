@@ -9,7 +9,7 @@ import BootScreen from '@/components/boot/BootScreen'
 import LoginScreen from '@/components/boot/LoginScreen'
 
 // Lern-Apps (React Flow → kein SSR)
-const UMLApp = dynamic(() => import('@/components/apps/uml/UMLApp'), { ssr: false })
+const PaintApp = dynamic(() => import('@/components/apps/paint/PaintApp'), { ssr: false })
 const ERDApp = dynamic(() => import('@/components/apps/erd/ERDApp'), { ssr: false })
 const BPMNApp = dynamic(() => import('@/components/apps/bpmn/BPMNApp'), { ssr: false })
 const MetaMatrixApp = dynamic(() => import('@/components/apps/metamatrix/MetaMatrixApp'), { ssr: false })
@@ -27,9 +27,9 @@ const SpaceCadetApp = dynamic(() => import('@/components/apps/spacecadet/SpaceCa
 const APPS = [
   // ── Lern-Programme ──────────────────────────────────────────
   {
-    id: 'uml', icon: '🏗️', label: 'UML Architect Pro',
-    title: 'UML Architect Pro – Objektorientierte Systemanalyse',
-    width: 1100, height: 680, component: 'uml', group: 'study',
+    id: 'paint', icon: '🎨', label: 'Paint',
+    title: 'Untitled - Paint',
+    width: 900, height: 700, component: 'paint', group: 'study',
   },
   {
     id: 'erd', icon: '🗄️', label: 'ERD Database Designer',
@@ -94,7 +94,7 @@ const SYSTEM_APPS = APPS.filter(a => a.group === 'system')
 
 function AppContent({ component }: { component: string }) {
   switch (component) {
-    case 'uml':        return <UMLApp />
+    case 'paint':      return <PaintApp />
     case 'erd':        return <ERDApp />
     case 'bpmn':       return <BPMNApp />
     case 'metamatrix': return <MetaMatrixApp />
