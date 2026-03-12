@@ -9,31 +9,6 @@ type Tool =
 
 interface Point { x: number; y: number }
 
-// ===== Tools in EXAKT der gewünschten Reihenfolge =====
-// Links: Lasso, Radiergummi, Pipette, Bleistift, Spraydose, Strich, Rechteck, Ellipse
-// Rechts: Rechteck-Auswahl, Eimer, Lupe, Pinsel, Text, Gekrümmte Linie, Vieleck, Abgerundetes Rechteck
-const TOOLS_LEFT: { id: Tool; hint: string }[] = [
-  { id: 'freeSelect', hint: 'Free-form Select' },
-  { id: 'eraser', hint: 'Eraser/Color Eraser' },
-  { id: 'pickColor', hint: 'Pick Color' },
-  { id: 'pencil', hint: 'Pencil' },
-  { id: 'airbrush', hint: 'Airbrush' },
-  { id: 'line', hint: 'Line' },
-  { id: 'rect', hint: 'Rectangle' },
-  { id: 'ellipse', hint: 'Ellipse' },
-]
-
-const TOOLS_RIGHT: { id: Tool; hint: string }[] = [
-  { id: 'select', hint: 'Select' },
-  { id: 'fill', hint: 'Fill With Color' },
-  { id: 'magnifier', hint: 'Magnifier' },
-  { id: 'brush', hint: 'Brush' },
-  { id: 'text', hint: 'Text' },
-  { id: 'curve', hint: 'Curve' },
-  { id: 'polygon', hint: 'Polygon' },
-  { id: 'roundRect', hint: 'Rounded Rectangle' },
-]
-
 // Tool Icons als Unicode/ASCII Symbole
 const ToolIcon = ({ tool, active }: { tool: Tool; active: boolean }) => {
   const icons: Record<Tool, string> = {
@@ -57,6 +32,51 @@ const ToolIcon = ({ tool, active }: { tool: Tool; active: boolean }) => {
   return <span style={{ fontSize: tool === 'text' ? 13 : 11, fontWeight: tool === 'text' ? 'bold' : 'normal', fontFamily: tool === 'text' ? 'Times, serif' : 'inherit' }}>{icons[tool]}</span>
 }
 
+// ===== Tools in EXAKT der gewünschten Reihenfolge =====
+// Reihe 1: Links=Lasso(Stern), Rechts=Rechteck(Auswahl)
+// Reihe 2: Links=Radiergummi, Rechts=Eimer
+// Reihe 3: Links=Pipette, Rechts=Lupe
+// Reihe 4: Links=Bleistift, Rechts=Pinsel
+// Reihe 5: Links=Spraydose, Rechts=Text
+// Reihe 6: Links=Strich, Rechts=Gekrümmte Linie
+// Reihe 7: Links=Rechteck, Rechts=Vieleck
+// Reihe 8: Links=Ellipse, Rechts=Abgerundetes Rechteck
+
+const TOOL_ROWS: { left: { id: Tool; hint: string }; right: { id: Tool; hint: string } }[] = [
+  { 
+    left: { id: 'freeSelect', hint: 'Free-form Select' }, 
+    right: { id: 'select', hint: 'Select' } 
+  },
+  { 
+    left: { id: 'eraser', hint: 'Eraser/Color Eraser' }, 
+    right: { id: 'fill', hint: 'Fill With Color' } 
+  },
+  { 
+    left: { id: 'pickColor', hint: 'Pick Color' }, 
+    right: { id: 'magnifier', hint: 'Magnifier' } 
+  },
+  { 
+    left: { id: 'pencil', hint: 'Pencil' }, 
+    right: { id: 'brush', hint: 'Brush' } 
+  },
+  { 
+    left: { id: 'airbrush', hint: 'Airbrush' }, 
+    right: { id: 'text', hint: 'Text' } 
+  },
+  { 
+    left: { id: 'line', hint: 'Line' }, 
+    right: { id: 'curve', hint: 'Curve' } 
+  },
+  { 
+    left: { id: 'rect', hint: 'Rectangle' }, 
+    right: { id: 'polygon', hint: 'Polygon' } 
+  },
+  { 
+    left: { id: 'ellipse', hint: 'Ellipse' }, 
+    right: { id: 'roundRect', hint: 'Rounded Rectangle' } 
+  },
+]
+
 // ===== Farbpalette: 2 Zeilen mit jeweils 14 Farben =====
 const COLOR_PALETTE_ROW1 = [
   '#000000', '#7F7F7F', '#880015', '#ED1C24', '#FF7F27', '#FFF200',
@@ -75,7 +95,6 @@ const XP_BG = '#ECE9D8'
 export default function PaintApp() {
   // ===== State =====
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const canvasContainerRef = useRef<HTMLDivElement>(null)
   const [activeTool, setActiveTool] = useState<Tool>('pencil')
   const [fgColor, setFgColor] = useState('#000000')
   const [bgColor, setBgColor] = useState('#FFFFFF')
@@ -93,7 +112,7 @@ export default function PaintApp() {
   // Scrollbar State
   const [scrollX, setScrollX] = useState(0)
   const [scrollY, setScrollY] = useState(0)
-  const [maxScroll, setMaxScroll] = useState({ x: 200, y: 200 })
+  const [maxScroll] = useState({ x: 200, y: 200 })
 
   // ===== Canvas Functions =====
   const getCanvasCoordinates = (e: React.MouseEvent): Point => {
@@ -325,7 +344,7 @@ export default function PaintApp() {
       const currentPos = axis === 'x' ? moveEvent.clientX : moveEvent.clientY
       const delta = currentPos - startPos
       const max = axis === 'x' ? maxScroll.x : maxScroll.y
-      const trackSize = axis === 'x' ? 200 : 150 // approximate
+      const trackSize = axis === 'x' ? 200 : 150
       const newScroll = Math.max(0, Math.min(max, startScroll + (delta * max / trackSize)))
       
       if (axis === 'x') setScrollX(newScroll)
@@ -485,7 +504,7 @@ export default function PaintApp() {
           padding: '4px 2px',
           gap: 4,
         }}>
-          {/* Tools Box */}
+          {/* Tools Box - EXAKTE REIHENFOLGE */}
           <div style={{
             border: '1px solid #ACA899',
             borderRadius: 3,
@@ -493,36 +512,34 @@ export default function PaintApp() {
             boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
             padding: '4px 3px',
           }}>
-            {/* Tools in 2 Spalten */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-              {TOOLS_LEFT.map((tool, i) => (
-                <button
-                  key={tool.id}
-                  title={tool.hint}
-                  style={toolBtnStyle(tool.id)}
-                  onClick={() => setActiveTool(tool.id)}
-                  onMouseEnter={() => setStatusText(tool.hint)}
-                  onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
-                >
-                  <ToolIcon tool={tool.id} active={activeTool === tool.id} />
-                </button>
-              ))}
-              {TOOLS_RIGHT.map((tool, i) => (
-                <button
-                  key={tool.id}
-                  title={tool.hint}
-                  style={toolBtnStyle(tool.id)}
-                  onClick={() => setActiveTool(tool.id)}
-                  onMouseEnter={() => setStatusText(tool.hint)}
-                  onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
-                >
-                  <ToolIcon tool={tool.id} active={activeTool === tool.id} />
-                </button>
+            {/* Tools in EXAKTER Reihenfolge: Links, Rechts, Links, Rechts... */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {TOOL_ROWS.map((row, i) => (
+                <div key={i} style={{ display: 'flex', gap: 1 }}>
+                  <button
+                    title={row.left.hint}
+                    style={toolBtnStyle(row.left.id)}
+                    onClick={() => setActiveTool(row.left.id)}
+                    onMouseEnter={() => setStatusText(row.left.hint)}
+                    onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
+                  >
+                    <ToolIcon tool={row.left.id} active={activeTool === row.left.id} />
+                  </button>
+                  <button
+                    title={row.right.hint}
+                    style={toolBtnStyle(row.right.id)}
+                    onClick={() => setActiveTool(row.right.id)}
+                    onMouseEnter={() => setStatusText(row.right.hint)}
+                    onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
+                  >
+                    <ToolIcon tool={row.right.id} active={activeTool === row.right.id} />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Options Box - nur Rahmen, kein Text */}
+          {/* Options Box - nur Rahmen */}
           <div style={{
             border: '1px solid #ACA899',
             borderRadius: 3,
@@ -600,9 +617,8 @@ export default function PaintApp() {
             display: 'flex',
             overflow: 'hidden',
           }}>
-            {/* Canvas Container - mit Scroll-Overflow */}
+            {/* Canvas Container */}
             <div 
-              ref={canvasContainerRef}
               style={{ 
                 flex: 1, 
                 overflow: 'hidden',
