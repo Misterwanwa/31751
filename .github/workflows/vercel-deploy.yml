@@ -1,8 +1,9 @@
-name: Daily Deploy to Vercel
+name: Deploy to Vercel
 
 on:
-  schedule:
-    - cron: '0 3 * * *'
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
@@ -21,6 +22,7 @@ jobs:
       - run: npm run build
       
       - uses: vercel/action-deploy@v1
+        if: github.event_name == 'push'
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
