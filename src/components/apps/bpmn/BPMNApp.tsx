@@ -242,9 +242,11 @@ function TaskConfigDialog({ onSave, onClose }: { onSave: (d: { label: string; ro
   )
 }
 
+type EdgeData = { condition: string }
+
 export default function BPMNApp() {
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<EdgeData>>([])
   const [caseIdx, setCaseIdx] = useState(0)
   const [pendingConn, setPendingConn] = useState<Connection | null>(null)
   const [showEdgeDialog, setShowEdgeDialog] = useState(false)
