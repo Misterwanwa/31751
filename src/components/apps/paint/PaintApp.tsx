@@ -9,57 +9,73 @@ type Tool =
 
 interface Point { x: number; y: number }
 
-// ===== Tool Layout (2 columns like original) =====
-const TOOLS: { id: Tool; hint: string; render: (active: boolean) => React.ReactNode }[][] = [
-  [
-    { id: 'freeSelect', hint: 'Free-form Select', render: () => <span style={{ fontSize: 10 }}>✂</span> },
-    { id: 'select', hint: 'Select', render: () => <span style={{ fontSize: 10 }}>▭</span> },
-  ],
-  [
-    { id: 'eraser', hint: 'Eraser/Color Eraser', render: () => <span style={{ fontSize: 10 }}>◫</span> },
-    { id: 'fill', hint: 'Fill With Color', render: () => <span style={{ fontSize: 10 }}>▼</span> },
-  ],
-  [
-    { id: 'pickColor', hint: 'Pick Color', render: () => <span style={{ fontSize: 10 }}>⚲</span> },
-    { id: 'magnifier', hint: 'Magnifier', render: () => <span style={{ fontSize: 10 }}>⚹</span> },
-  ],
-  [
-    { id: 'pencil', hint: 'Pencil', render: () => <span style={{ fontSize: 10 }}>✎</span> },
-    { id: 'brush', hint: 'Brush', render: () => <span style={{ fontSize: 10 }}>✐</span> },
-  ],
-  [
-    { id: 'airbrush', hint: 'Airbrush', render: () => <span style={{ fontSize: 10 }}>⌼</span> },
-    { id: 'text', hint: 'Text', render: () => <span style={{ fontSize: 12, fontWeight: 'bold', fontFamily: 'Times' }}>A</span> },
-  ],
-  [
-    { id: 'line', hint: 'Line', render: () => <span style={{ fontSize: 10 }}>╱</span> },
-    { id: 'curve', hint: 'Curve', render: () => <span style={{ fontSize: 10 }}>∿</span> },
-  ],
-  [
-    { id: 'rect', hint: 'Rectangle', render: () => <span style={{ fontSize: 10 }}>▭</span> },
-    { id: 'polygon', hint: 'Polygon', render: () => <span style={{ fontSize: 10 }}>⬠</span> },
-  ],
-  [
-    { id: 'ellipse', hint: 'Ellipse', render: () => <span style={{ fontSize: 10 }}>⬭</span> },
-    { id: 'roundRect', hint: 'Rounded Rectangle', render: () => <span style={{ fontSize: 10 }}>▢</span> },
-  ],
+// ===== Tools in EXAKT der gewünschten Reihenfolge =====
+// Links: Lasso, Radiergummi, Pipette, Bleistift, Spraydose, Strich, Rechteck, Ellipse
+// Rechts: Rechteck-Auswahl, Eimer, Lupe, Pinsel, Text, Gekrümmte Linie, Vieleck, Abgerundetes Rechteck
+const TOOLS_LEFT: { id: Tool; hint: string }[] = [
+  { id: 'freeSelect', hint: 'Free-form Select' },
+  { id: 'eraser', hint: 'Eraser/Color Eraser' },
+  { id: 'pickColor', hint: 'Pick Color' },
+  { id: 'pencil', hint: 'Pencil' },
+  { id: 'airbrush', hint: 'Airbrush' },
+  { id: 'line', hint: 'Line' },
+  { id: 'rect', hint: 'Rectangle' },
+  { id: 'ellipse', hint: 'Ellipse' },
 ]
 
-// ===== 28 Colors like original Paint =====
-const COLOR_PALETTE = [
+const TOOLS_RIGHT: { id: Tool; hint: string }[] = [
+  { id: 'select', hint: 'Select' },
+  { id: 'fill', hint: 'Fill With Color' },
+  { id: 'magnifier', hint: 'Magnifier' },
+  { id: 'brush', hint: 'Brush' },
+  { id: 'text', hint: 'Text' },
+  { id: 'curve', hint: 'Curve' },
+  { id: 'polygon', hint: 'Polygon' },
+  { id: 'roundRect', hint: 'Rounded Rectangle' },
+]
+
+// Tool Icons als Unicode/ASCII Symbole
+const ToolIcon = ({ tool, active }: { tool: Tool; active: boolean }) => {
+  const icons: Record<Tool, string> = {
+    freeSelect: '✦',     // Stern/Lasso
+    select: '▭',         // Rechteck (Auswahl)
+    eraser: '▭',         // Radiergummi
+    fill: '▼',           // Eimer
+    pickColor: '⚲',      // Pipette
+    magnifier: '⚲',      // Lupe
+    pencil: '✎',         // Bleistift
+    brush: '✐',          // Pinsel
+    airbrush: '⌼',       // Spraydose
+    text: 'A',           // Text
+    line: '╱',           // Strich
+    curve: '∿',          // Gekrümmte Linie
+    rect: '▭',           // Rechteck
+    polygon: '⬠',        // Vieleck
+    ellipse: '⬭',        // Ellipse
+    roundRect: '▢',      // Abgerundetes Rechteck
+  }
+  return <span style={{ fontSize: tool === 'text' ? 13 : 11, fontWeight: tool === 'text' ? 'bold' : 'normal', fontFamily: tool === 'text' ? 'Times, serif' : 'inherit' }}>{icons[tool]}</span>
+}
+
+// ===== Farbpalette: 2 Zeilen mit jeweils 14 Farben =====
+const COLOR_PALETTE_ROW1 = [
   '#000000', '#7F7F7F', '#880015', '#ED1C24', '#FF7F27', '#FFF200',
   '#22B14C', '#00A2E8', '#3F48CC', '#A349A4', '#FFFFFF', '#C3C3C3',
-  '#B97A57', '#FFAEC9', '#FFC90E', '#EFE4B0', '#B5E61D', '#99D9EA', '#7092BE', '#C8BFE7',
-  '#880015', '#ED1C24', '#FF7F27', '#FFF200', '#22B14C', '#00A2E8', '#3F48CC', '#A349A4',
+  '#B97A57', '#FFAEC9',
+]
+const COLOR_PALETTE_ROW2 = [
+  '#FFC90E', '#EFE4B0', '#B5E61D', '#99D9EA', '#7092BE', '#C8BFE7',
+  '#880015', '#ED1C24', '#FF7F27', '#FFF200', '#22B14C', '#00A2E8',
+  '#3F48CC', '#A349A4',
 ]
 
 // XP Style Colors
 const XP_BG = '#ECE9D8'
-const XP_BORDER = '#ACA899'
 
 export default function PaintApp() {
   // ===== State =====
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasContainerRef = useRef<HTMLDivElement>(null)
   const [activeTool, setActiveTool] = useState<Tool>('pencil')
   const [fgColor, setFgColor] = useState('#000000')
   const [bgColor, setBgColor] = useState('#FFFFFF')
@@ -73,6 +89,11 @@ export default function PaintApp() {
   const [statusText, setStatusText] = useState('For Help, click Help Topics on the Help Menu.')
   const [brushSize, setBrushSize] = useState(2)
   const [fillShapes, setFillShapes] = useState(false)
+  
+  // Scrollbar State
+  const [scrollX, setScrollX] = useState(0)
+  const [scrollY, setScrollY] = useState(0)
+  const [maxScroll, setMaxScroll] = useState({ x: 200, y: 200 })
 
   // ===== Canvas Functions =====
   const getCanvasCoordinates = (e: React.MouseEvent): Point => {
@@ -80,8 +101,8 @@ export default function PaintApp() {
     if (!canvas) return { x: 0, y: 0 }
     const rect = canvas.getBoundingClientRect()
     return {
-      x: Math.floor(e.clientX - rect.left),
-      y: Math.floor(e.clientY - rect.top)
+      x: Math.floor(e.clientX - rect.left + scrollX),
+      y: Math.floor(e.clientY - rect.top + scrollY)
     }
   }
 
@@ -281,6 +302,45 @@ export default function PaintApp() {
     }
   }
 
+  // ===== Scrollbar Functions =====
+  const handleVScroll = (direction: 'up' | 'down') => {
+    setScrollY(prev => {
+      const newVal = direction === 'up' ? Math.max(0, prev - 20) : Math.min(maxScroll.y, prev + 20)
+      return newVal
+    })
+  }
+
+  const handleHScroll = (direction: 'left' | 'right') => {
+    setScrollX(prev => {
+      const newVal = direction === 'left' ? Math.max(0, prev - 20) : Math.min(maxScroll.x, prev + 20)
+      return newVal
+    })
+  }
+
+  const handleScrollDrag = (axis: 'x' | 'y', e: React.MouseEvent) => {
+    const startPos = axis === 'x' ? e.clientX : e.clientY
+    const startScroll = axis === 'x' ? scrollX : scrollY
+    
+    const handleMove = (moveEvent: MouseEvent) => {
+      const currentPos = axis === 'x' ? moveEvent.clientX : moveEvent.clientY
+      const delta = currentPos - startPos
+      const max = axis === 'x' ? maxScroll.x : maxScroll.y
+      const trackSize = axis === 'x' ? 200 : 150 // approximate
+      const newScroll = Math.max(0, Math.min(max, startScroll + (delta * max / trackSize)))
+      
+      if (axis === 'x') setScrollX(newScroll)
+      else setScrollY(newScroll)
+    }
+
+    const handleUp = () => {
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mouseup', handleUp)
+    }
+
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('mouseup', handleUp)
+  }
+
   // ===== Init =====
   useEffect(() => {
     const canvas = canvasRef.current
@@ -311,6 +371,10 @@ export default function PaintApp() {
     alignItems: 'center',
     justifyContent: 'center',
   })
+
+  // Scrollbar thumb positions
+  const vThumbPos = maxScroll.y > 0 ? (scrollY / maxScroll.y) * 100 : 0
+  const hThumbPos = maxScroll.x > 0 ? (scrollX / maxScroll.x) * 100 : 0
 
   return (
     <div style={{ 
@@ -411,7 +475,7 @@ export default function PaintApp() {
       {/* ===== MAIN AREA ===== */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         
-        {/* ===== LEFT SIDEBAR (Toolbar + Options) ===== */}
+        {/* ===== LEFT SIDEBAR ===== */}
         <div style={{ 
           width: 56, 
           background: XP_BG,
@@ -429,24 +493,36 @@ export default function PaintApp() {
             boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
             padding: '4px 3px',
           }}>
-            {/* Tools in 2 columns */}
+            {/* Tools in 2 Spalten */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-              {TOOLS.flat().map(({ id, hint, render }) => (
+              {TOOLS_LEFT.map((tool, i) => (
                 <button
-                  key={id}
-                  title={hint}
-                  style={toolBtnStyle(id)}
-                  onClick={() => setActiveTool(id)}
-                  onMouseEnter={() => setStatusText(hint)}
+                  key={tool.id}
+                  title={tool.hint}
+                  style={toolBtnStyle(tool.id)}
+                  onClick={() => setActiveTool(tool.id)}
+                  onMouseEnter={() => setStatusText(tool.hint)}
                   onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
                 >
-                  {render(activeTool === id)}
+                  <ToolIcon tool={tool.id} active={activeTool === tool.id} />
+                </button>
+              ))}
+              {TOOLS_RIGHT.map((tool, i) => (
+                <button
+                  key={tool.id}
+                  title={tool.hint}
+                  style={toolBtnStyle(tool.id)}
+                  onClick={() => setActiveTool(tool.id)}
+                  onMouseEnter={() => setStatusText(tool.hint)}
+                  onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
+                >
+                  <ToolIcon tool={tool.id} active={activeTool === tool.id} />
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Options Box */}
+          {/* Options Box - nur Rahmen, kein Text */}
           <div style={{
             border: '1px solid #ACA899',
             borderRadius: 3,
@@ -454,12 +530,13 @@ export default function PaintApp() {
             boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
             padding: 6,
             minHeight: 60,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
           }}>
-            <div style={{ fontSize: 10, fontWeight: 'bold', marginBottom: 6, textAlign: 'center' }}>Options</div>
-            
-            {/* Brush Size Options */}
+            {/* Options Inhalt nur wenn Tool Optionen hat */}
             {(activeTool === 'brush' || activeTool === 'eraser' || activeTool === 'airbrush') && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
                 {[1, 2, 3, 4, 5].map(size => (
                   <button
                     key={size}
@@ -486,7 +563,6 @@ export default function PaintApp() {
               </div>
             )}
 
-            {/* Shape Fill Option */}
             {(activeTool === 'rect' || activeTool === 'ellipse' || activeTool === 'polygon' || activeTool === 'roundRect') && (
               <label style={{ 
                 display: 'flex', 
@@ -502,13 +578,6 @@ export default function PaintApp() {
                 />
                 Fill
               </label>
-            )}
-
-            {/* Empty Options for other tools */}
-            {!['brush', 'eraser', 'airbrush', 'rect', 'ellipse', 'polygon', 'roundRect'].includes(activeTool) && (
-              <div style={{ color: '#999', fontSize: 9, textAlign: 'center', paddingTop: 10 }}>
-                No options
-              </div>
             )}
           </div>
         </div>
@@ -531,36 +600,50 @@ export default function PaintApp() {
             display: 'flex',
             overflow: 'hidden',
           }}>
-            {/* Canvas Container */}
-            <div style={{ 
-              flex: 1, 
-              overflow: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 20,
-            }}>
-              {/* Canvas with Shadow border */}
+            {/* Canvas Container - mit Scroll-Overflow */}
+            <div 
+              ref={canvasContainerRef}
+              style={{ 
+                flex: 1, 
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+            >
+              {/* Scrollbarer Canvas-Wrapper */}
               <div style={{
-                background: '#808080',
-                padding: 2,
-                boxShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+                position: 'absolute',
+                left: 20 - scrollX,
+                top: 20 - scrollY,
+                minWidth: '100%',
+                minHeight: '100%',
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start',
+                padding: 20,
               }}>
-                <canvas
-                  ref={canvasRef}
-                  width={canvasSize.width}
-                  height={canvasSize.height}
-                  style={{
-                    background: '#FFFFFF',
-                    cursor: 'crosshair',
-                    display: 'block',
-                  }}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onContextMenu={e => e.preventDefault()}
-                />
+                {/* Canvas mit Shadow border */}
+                <div style={{
+                  background: '#808080',
+                  padding: 2,
+                  boxShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+                  flexShrink: 0,
+                }}>
+                  <canvas
+                    ref={canvasRef}
+                    width={canvasSize.width}
+                    height={canvasSize.height}
+                    style={{
+                      background: '#FFFFFF',
+                      cursor: 'crosshair',
+                      display: 'block',
+                    }}
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onContextMenu={e => e.preventDefault()}
+                  />
+                </div>
               </div>
             </div>
 
@@ -572,20 +655,24 @@ export default function PaintApp() {
               display: 'flex',
               flexDirection: 'column',
             }}>
-              <XpScrollButton>▲</XpScrollButton>
+              <XpScrollButton onClick={() => handleVScroll('up')}>▲</XpScrollButton>
               <div style={{ flex: 1, position: 'relative', background: '#E8E5D8' }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '15%',
-                  left: 2,
-                  right: 2,
-                  height: 50,
-                  background: '#E0DDD0',
-                  border: '1px solid #908D85',
-                  boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
-                }} />
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: `${10 + vThumbPos * 0.6}%`,
+                    left: 2,
+                    right: 2,
+                    height: 40,
+                    background: '#E0DDD0',
+                    border: '1px solid #908D85',
+                    boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
+                    cursor: 'pointer',
+                  }}
+                  onMouseDown={(e) => handleScrollDrag('y', e)}
+                />
               </div>
-              <XpScrollButton>▼</XpScrollButton>
+              <XpScrollButton onClick={() => handleVScroll('down')}>▼</XpScrollButton>
             </div>
           </div>
 
@@ -597,20 +684,24 @@ export default function PaintApp() {
             display: 'flex',
             alignItems: 'center',
           }}>
-            <XpScrollButton>◀</XpScrollButton>
+            <XpScrollButton onClick={() => handleHScroll('left')}>◀</XpScrollButton>
             <div style={{ flex: 1, position: 'relative', height: '100%', background: '#E8E5D8' }}>
-              <div style={{
-                position: 'absolute',
-                left: '10%',
-                top: 2,
-                bottom: 2,
-                width: 80,
-                background: '#E0DDD0',
-                border: '1px solid #908D85',
-                boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
-              }} />
+              <div 
+                style={{
+                  position: 'absolute',
+                  left: `${5 + hThumbPos * 0.7}%`,
+                  top: 2,
+                  bottom: 2,
+                  width: 60,
+                  background: '#E0DDD0',
+                  border: '1px solid #908D85',
+                  boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
+                  cursor: 'pointer',
+                }}
+                onMouseDown={(e) => handleScrollDrag('x', e)}
+              />
             </div>
-            <XpScrollButton>▶</XpScrollButton>
+            <XpScrollButton onClick={() => handleHScroll('right')}>▶</XpScrollButton>
             <div style={{ 
               width: 16, 
               height: 16, 
@@ -622,14 +713,13 @@ export default function PaintApp() {
         </div>
       </div>
 
-      {/* ===== COLOR PALETTE (Bottom) ===== */}
+      {/* ===== COLOR PALETTE (2 Zeilen mit je 14 Farben) ===== */}
       <div style={{
-        height: 46,
         background: XP_BG,
         borderTop: '1px solid #ACA899',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 8px',
+        padding: '4px 8px',
         gap: 8,
       }}>
         {/* Color Preview Box */}
@@ -673,34 +763,61 @@ export default function PaintApp() {
           />
         </div>
 
-        {/* Color Grid */}
+        {/* Color Grid - 2 Zeilen */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(28, 14px)',
-          gap: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
           flex: 1,
         }}>
-          {COLOR_PALETTE.map((color, i) => (
-            <button
-              key={i}
-              onClick={e => {
-                if (e.button === 2 || e.ctrlKey) setBgColor(color)
-                else setFgColor(color)
-              }}
-              onContextMenu={e => {
-                e.preventDefault()
-                setBgColor(color)
-              }}
-              style={{
-                width: 14,
-                height: 14,
-                padding: 0,
-                border: '1px solid #ACA899',
-                background: color,
-                cursor: 'pointer',
-              }}
-            />
-          ))}
+          {/* Zeile 1 */}
+          <div style={{ display: 'flex', gap: 0 }}>
+            {COLOR_PALETTE_ROW1.map((color, i) => (
+              <button
+                key={`r1-${i}`}
+                onClick={e => {
+                  if (e.button === 2 || e.ctrlKey) setBgColor(color)
+                  else setFgColor(color)
+                }}
+                onContextMenu={e => {
+                  e.preventDefault()
+                  setBgColor(color)
+                }}
+                style={{
+                  width: 16,
+                  height: 16,
+                  padding: 0,
+                  border: '1px solid #ACA899',
+                  background: color,
+                  cursor: 'pointer',
+                }}
+              />
+            ))}
+          </div>
+          {/* Zeile 2 */}
+          <div style={{ display: 'flex', gap: 0 }}>
+            {COLOR_PALETTE_ROW2.map((color, i) => (
+              <button
+                key={`r2-${i}`}
+                onClick={e => {
+                  if (e.button === 2 || e.ctrlKey) setBgColor(color)
+                  else setFgColor(color)
+                }}
+                onContextMenu={e => {
+                  e.preventDefault()
+                  setBgColor(color)
+                }}
+                style={{
+                  width: 16,
+                  height: 16,
+                  padding: 0,
+                  border: '1px solid #ACA899',
+                  background: color,
+                  cursor: 'pointer',
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
@@ -733,21 +850,24 @@ export default function PaintApp() {
 // ===== Subcomponents =====
 const floatRight: React.CSSProperties = { float: 'right', marginLeft: 20 }
 
-function XpScrollButton({ children }: { children: React.ReactNode }) {
+function XpScrollButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
   return (
-    <button style={{
-      width: 16,
-      height: 16,
-      padding: 0,
-      border: 'none',
-      background: '#ECE9D8',
-      cursor: 'pointer',
-      fontSize: 8,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
-    }}>
+    <button 
+      onClick={onClick}
+      style={{
+        width: 16,
+        height: 16,
+        padding: 0,
+        border: 'none',
+        background: '#ECE9D8',
+        cursor: 'pointer',
+        fontSize: 8,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
+      }}
+    >
       {children}
     </button>
   )
