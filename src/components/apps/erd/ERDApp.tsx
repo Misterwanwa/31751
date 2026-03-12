@@ -311,9 +311,11 @@ function detectCycles(nodes: Node[], edges: Edge[]): string[][] {
 
 let nId = 1, eId = 1
 
+type EdgeData = { label?: string; cardinality?: string; isGeneralization?: boolean; generalization?: boolean; card?: string; complete?: boolean; exclusive?: boolean; reason?: string }
+
 export default function ERDApp() {
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<EdgeData>>([])
   const [caseIdx, setCaseIdx] = useState(0)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [notation, setNotation] = useState<'old' | 'new'>('old')

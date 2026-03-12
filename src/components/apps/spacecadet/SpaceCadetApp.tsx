@@ -114,7 +114,8 @@ export default function SpaceCadetApp() {
 
       // Stars decoration
       ctx.fillStyle = 'rgba(255,255,255,0.3)'
-      [[80, 80], [120, 150], [200, 100], [350, 80], [400, 120], [100, 400], [380, 350]].forEach(([x, y]) => {
+      const stars: [number, number][] = [[80, 80], [120, 150], [200, 100], [350, 80], [400, 120], [100, 400], [380, 350]]
+      stars.forEach(([x, y]) => {
         ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill()
       })
 
