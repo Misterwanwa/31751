@@ -1,11 +1,19 @@
 'use client'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react'
+import dynamic from 'next/dynamic'
+
+// Dynamically import DiagramCanvas to avoid SSR issues with ReactFlow
+const DiagramCanvas = dynamic(() => import('./DiagramCanvas'), { ssr: false, loading: () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#ECE9D8' }}>
+    <span style={{ fontFamily: 'Tahoma, sans-serif', fontSize: 11 }}>Lade Diagramm-Modus...</span>
+  </div>
+) })
 
 // ===== Types =====
 type Tool = 
   | 'freeSelect' | 'select' | 'eraser' | 'fill' | 'pickColor' | 'magnifier'
   | 'pencil' | 'brush' | 'airbrush' | 'text' | 'line' | 'curve'
-  | 'rect' | 'polygon' | 'ellipse' | 'roundRect'
+  | 'rect' | 'polygon' | 'ellipse' | 'roundRect' | 'diagram'
 
 interface Point { x: number; y: number }
 
@@ -28,6 +36,7 @@ const ToolIcon = ({ tool, active }: { tool: Tool; active: boolean }) => {
     polygon: '⬠',        // Vieleck
     ellipse: '⬭',        // Ellipse
     roundRect: '▢',      // Abgerundetes Rechteck
+    diagram: '▭',        // Diagramm (erscheint extra in Toolbar)
   }
   return <span style={{ fontSize: tool === 'text' ? 13 : 11, fontWeight: tool === 'text' ? 'bold' : 'normal', fontFamily: tool === 'text' ? 'Times, serif' : 'inherit' }}>{icons[tool]}</span>
 }
@@ -77,6 +86,9 @@ const TOOL_ROWS: { left: { id: Tool; hint: string }; right: { id: Tool; hint: st
   },
 ]
 
+// Diagramm-Button (separat, nicht in TOOL_ROWS)
+const DIAGRAM_TOOL = { id: 'diagram' as Tool, hint: 'Diagram Mode (UML, ERM, BPMN)' }
+
 // ===== Farbpalette: 2 Zeilen mit jeweils 14 Farben =====
 const COLOR_PALETTE_ROW1 = [
   '#000000', '#7F7F7F', '#880015', '#ED1C24', '#FF7F27', '#FFF200',
@@ -108,6 +120,7 @@ export default function PaintApp() {
   const [statusText, setStatusText] = useState('For Help, click Help Topics on the Help Menu.')
   const [brushSize, setBrushSize] = useState(2)
   const [fillShapes, setFillShapes] = useState(false)
+  const [isDiagramMode, setIsDiagramMode] = useState(false)
   
   // Scrollbar State
   const [scrollX, setScrollX] = useState(0)
@@ -519,97 +532,137 @@ export default function PaintApp() {
                   <button
                     title={row.left.hint}
                     style={toolBtnStyle(row.left.id)}
-                    onClick={() => setActiveTool(row.left.id)}
+                    onClick={() => { setActiveTool(row.left.id); setIsDiagramMode(false); }}
                     onMouseEnter={() => setStatusText(row.left.hint)}
                     onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
                   >
-                    <ToolIcon tool={row.left.id} active={activeTool === row.left.id} />
+                    <ToolIcon tool={row.left.id} active={activeTool === row.left.id && !isDiagramMode} />
                   </button>
                   <button
                     title={row.right.hint}
                     style={toolBtnStyle(row.right.id)}
-                    onClick={() => setActiveTool(row.right.id)}
+                    onClick={() => { setActiveTool(row.right.id); setIsDiagramMode(false); }}
                     onMouseEnter={() => setStatusText(row.right.hint)}
                     onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
                   >
-                    <ToolIcon tool={row.right.id} active={activeTool === row.right.id} />
+                    <ToolIcon tool={row.right.id} active={activeTool === row.right.id && !isDiagramMode} />
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Options Box - nur Rahmen */}
+          {/* Diagram Mode Button */}
           <div style={{
             border: '1px solid #ACA899',
             borderRadius: 3,
-            background: XP_BG,
+            background: isDiagramMode ? '#EEF4FF' : XP_BG,
             boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
-            padding: 6,
-            minHeight: 60,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
+            padding: '4px',
           }}>
-            {/* Options Inhalt nur wenn Tool Optionen hat */}
-            {(activeTool === 'brush' || activeTool === 'eraser' || activeTool === 'airbrush') && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-                {[1, 2, 3, 4, 5].map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setBrushSize(size)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: 14,
-                      padding: 0,
-                      border: brushSize === size ? '1px solid #7F9EDA' : '1px solid transparent',
-                      background: brushSize === size ? '#E3E0D1' : 'transparent',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <div style={{
-                      width: size * 2 + 3,
-                      height: size * 2 + 3,
-                      borderRadius: '50%',
-                      background: '#000',
-                    }} />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {(activeTool === 'rect' || activeTool === 'ellipse' || activeTool === 'polygon' || activeTool === 'roundRect') && (
-              <label style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 4, 
-                fontSize: 10,
+            <button
+              title={DIAGRAM_TOOL.hint}
+              style={{
+                width: '100%',
+                height: 40,
+                border: isDiagramMode ? '2px solid #316AC5' : '1px solid #F1EFE2',
+                background: isDiagramMode ? '#D8E8FF' : '#ECE9D8',
                 cursor: 'pointer',
-              }}>
-                <input 
-                  type="checkbox" 
-                  checked={fillShapes}
-                  onChange={e => setFillShapes(e.target.checked)}
-                />
-                Fill
-              </label>
-            )}
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+              }}
+              onClick={() => setIsDiagramMode(true)}
+              onMouseEnter={() => setStatusText(DIAGRAM_TOOL.hint)}
+              onMouseLeave={() => setStatusText('For Help, click Help Topics on the Help Menu.')}
+            >
+              <span style={{ fontSize: 16 }}>▭</span>
+              <span style={{ fontSize: 8, fontWeight: 'bold' }}>DIAGRAMM</span>
+            </button>
           </div>
+
+          {/* Options Box - nur Rahmen (nur im Paint-Modus sichtbar) */}
+          {!isDiagramMode && (
+            <div style={{
+              border: '1px solid #ACA899',
+              borderRadius: 3,
+              background: XP_BG,
+              boxShadow: 'inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #716F64',
+              padding: 6,
+              minHeight: 60,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}>
+              {/* Options Inhalt nur wenn Tool Optionen hat */}
+              {(activeTool === 'brush' || activeTool === 'eraser' || activeTool === 'airbrush') && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                  {[1, 2, 3, 4, 5].map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setBrushSize(size)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: 14,
+                        padding: 0,
+                        border: brushSize === size ? '1px solid #7F9EDA' : '1px solid transparent',
+                        background: brushSize === size ? '#E3E0D1' : 'transparent',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{
+                        width: size * 2 + 3,
+                        height: size * 2 + 3,
+                        borderRadius: '50%',
+                        background: '#000',
+                      }} />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {(activeTool === 'rect' || activeTool === 'ellipse' || activeTool === 'polygon' || activeTool === 'roundRect') && (
+                <label style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 4, 
+                  fontSize: 10,
+                  cursor: 'pointer',
+                }}>
+                  <input 
+                    type="checkbox" 
+                    checked={fillShapes}
+                    onChange={e => setFillShapes(e.target.checked)}
+                  />
+                  Fill
+                </label>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ===== CANVAS AREA ===== */}
         <div 
           style={{ 
             flex: 1, 
-            background: '#7F9EDA',
+            background: isDiagramMode ? '#fff' : '#7F9EDA',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
           }}
           onClick={() => setActiveMenu(null)}
         >
+          {/* Diagram Mode */}
+          {isDiagramMode ? (
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <DiagramCanvas />
+            </div>
+          ) : (
+          <>
           {/* Canvas with Scrollbars */}
           <div style={{ 
             flex: 1, 
@@ -727,9 +780,13 @@ export default function PaintApp() {
             }} />
           </div>
         </div>
+          </>
+          )}
+        </div>
       </div>
 
-      {/* ===== COLOR PALETTE (2 Zeilen mit je 14 Farben) ===== */}
+      {/* ===== COLOR PALETTE (nur im Paint-Modus) ===== */}
+      {!isDiagramMode && (
       <div style={{
         background: XP_BG,
         borderTop: '1px solid #ACA899',
@@ -836,6 +893,7 @@ export default function PaintApp() {
           </div>
         </div>
       </div>
+      )}
 
       {/* ===== STATUS BAR ===== */}
       <div style={{
@@ -848,7 +906,7 @@ export default function PaintApp() {
         fontSize: 11,
       }}>
         <div style={{ flex: 1 }}>
-          {statusText}
+          {isDiagramMode ? 'Diagram Mode: Drag shapes from palette, double-click to edit text' : statusText}
         </div>
         <div style={{ 
           borderLeft: '1px solid #ACA899', 
@@ -856,7 +914,7 @@ export default function PaintApp() {
           minWidth: 80,
           textAlign: 'right',
         }}>
-          {currentPos.x}, {currentPos.y}px
+          {isDiagramMode ? 'Vector' : `${currentPos.x}, ${currentPos.y}px`}
         </div>
       </div>
     </div>
